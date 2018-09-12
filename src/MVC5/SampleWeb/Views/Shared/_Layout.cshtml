@@ -1,0 +1,62 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    @* This is Razor comment *@
+    <title>@ViewBag.Title - Minification Sample</title>
+    @Scripts.Render("~/bundles/modernizr")
+    @Scripts.Render("~/bundles/jquery")
+    @Styles.Render("~/Content/css")
+</head>
+<body>
+    @* This is Razor comment *@
+    <div class="navbar navbar-inverse navbar-fixed-top">
+        @* This is Razor comment *@
+        <div class="container">
+            @* This is Razor comment *@
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    @* This is Razor comment *@
+                    <span class="icon-bar"></span>
+                    @* This is Razor comment *@
+                    <span class="icon-bar"></span>
+                    @* This is Razor comment *@
+                    <span class="icon-bar"></span>
+                </button>
+                @Html.ActionLink("Application name", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
+            </div>
+            @* This is Razor comment *@
+            <div class="navbar-collapse collapse">
+                @* This is Razor comment *@
+                <ul class="nav navbar-nav">
+                    <li>@Html.ActionLink("Home", "Index", "Home")</li>
+                    <li>@Html.ActionLink("About", "About", "Home")</li>
+                    <li>@Html.ActionLink("Contact", "Contact", "Home")</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="container body-content">
+        @RenderBody()
+        <hr />
+        <footer>
+            <p>&copy; @DateTime.Now.Year - My ASP.NET Application</p>
+        </footer>
+    </div>
+    <script>
+        @* This is Razor comment *@
+        // Comment will be removed
+        var layout = true;
+        /**
+         * Javascript block comment will be removed
+         */
+        function getLayout() {
+            return layout;
+        }
+    </script>
+
+    @Scripts.Render("~/bundles/bootstrap")
+    @RenderSection("scripts", required: false)
+</body>
+</html>

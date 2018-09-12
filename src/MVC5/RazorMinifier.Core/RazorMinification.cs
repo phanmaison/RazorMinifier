@@ -31,18 +31,32 @@ namespace RazorMinifier
             // remove block comment @* *@ to save some more space
             htmlContents = Regex.Replace(htmlContents, @"@\*(.|\n)*?\*@", "", RegexOptions.Multiline);
 
-            // Minify the string
-            htmlContents = Regex.Replace(htmlContents, @"/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+/", "");
-
             // ReplaceTextLine (@: => <text></text>)
             htmlContents = ReplaceTextLine(htmlContents);
 
-            // double slash (//) not start with semi colon (:)
-            htmlContents = Regex.Replace(htmlContents, @"[^:]//(.*?)\r?\n", "", RegexOptions.Singleline);
+            if (!option.IgnoreJsComments)
+                // double slash (//) not start with semi colon (:)
+                htmlContents = Regex.Replace(htmlContents, @"[^:]//(.*?)\r?\n", "", RegexOptions.Singleline);
 
             // Replace #region and #endregion
-            htmlContents = Regex.Replace(htmlContents, @"#region(.*?)\r?\n", "", RegexOptions.Singleline);
-            htmlContents = Regex.Replace(htmlContents, @"#endregion(.*?)\r?\n", "", RegexOptions.Singleline);
+            if (!option.IgnoreRegion)
+            {
+                htmlContents = Regex.Replace(htmlContents, @"#region(.*?)\r?\n", "", RegexOptions.Singleline);
+                htmlContents = Regex.Replace(htmlContents, @"#endregion(.*?)\r?\n", "", RegexOptions.Singleline);
+            }
+            
+            // warning: should never replace html comment
+            // Replace comments
+            if (!option.IgnoreHtmlComments)
+            {
+                htmlContents = Regex.Replace(htmlContents, 
+                    option.IgnoreKnockoutComments ? 
+                        @"<!--(?!(\[|\s*#include))(?!ko .*)(?!\/ko)(.*?)-->" : 
+                        @"<!--(?!(\[|\s*#include))(.*?)-->", "");
+            }
+
+            // Minify the string
+            htmlContents = Regex.Replace(htmlContents, @"/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+/", "");
 
             // Replace spaces between quotes
             htmlContents = Regex.Replace(htmlContents, @"\s+", " ");
@@ -53,27 +67,13 @@ namespace RazorMinifier
             // Replace spaces between brackets
             htmlContents = Regex.Replace(htmlContents, @"\s*\>\s*\<\s*", "><");
 
-            // never replace html comment
-            //// Replace comments
-            //if (!features.IgnoreHtmlComments)
-            //{
-            //    if (features.IgnoreKnockoutComments)
-            //    {
-            //        htmlContents = Regex.Replace(htmlContents, @"<!--(?!(\[|\s*#include))(?!ko .*)(?!\/ko)(.*?)-->", "");
-            //    }
-            //    else
-            //    {
-            //        htmlContents = Regex.Replace(htmlContents, @"<!--(?!(\[|\s*#include))(.*?)-->", "");
-            //    }
-            //}
-
             // single-line doctype must be preserved
-            var firstEndBracketPosition = htmlContents.IndexOf(">", StringComparison.Ordinal);
-            if (firstEndBracketPosition >= 0)
-            {
-                htmlContents = htmlContents.Remove(firstEndBracketPosition, 1);
-                htmlContents = htmlContents.Insert(firstEndBracketPosition, ">");
-            }
+            //var firstEndBracketPosition = htmlContents.IndexOf(">", StringComparison.Ordinal);
+            //if (firstEndBracketPosition >= 0)
+            //{
+            //    htmlContents = htmlContents.Remove(firstEndBracketPosition, 1);
+            //    htmlContents = htmlContents.Insert(firstEndBracketPosition, ">");
+            //}
 
             // Put back special keys
             //htmlContents = htmlContents.Replace("{{{SLASH_STAR}}}", "/*");

@@ -13,27 +13,27 @@ namespace RazorMinifier
         public MinifyOptions(string[] args)
         {
             if (args.Contains("ignorehtmlcomments"))
-            {
                 IgnoreHtmlComments = true;
-            }
 
             if (args.Contains("ignorejscomments"))
-            {
                 IgnoreJsComments = true;
-            }
+
+            if (args.Contains("ignoreregion"))
+                this.IgnoreRegion = true;
 
             if (args.Contains("ignoreknockoutcomments"))
-            {
                 IgnoreKnockoutComments = true;
-            }
 
+
+            // maxlength=XXXXX
             int maxLength = 0;
 
-            // This is a check to see if the args contain an optional parameter for the max line length
-            if (args.Length > 1)
+            foreach (string arg in args)
             {
-                // Try and parse the value sent through
-                int.TryParse(args[1], out maxLength);
+                if (arg.Contains("maxlength="))
+                {
+                    int.TryParse(arg.Split("=".ToCharArray())[1], out maxLength);
+                }
             }
 
             MaxLength = maxLength;
@@ -42,21 +42,23 @@ namespace RazorMinifier
         /// <summary>
         /// Should we ignore the JavaScript comments and not minify?
         /// </summary>
-        public bool IgnoreJsComments { get; private set; }
+        public bool IgnoreJsComments { get; set; } = false;
 
         /// <summary>
         /// Should we ignore the html comments and not minify?
         /// </summary>
-        public bool IgnoreHtmlComments { get; private set; }
+        public bool IgnoreHtmlComments { get; set; } = false;
+
+        public bool IgnoreRegion { get; set; } = false;
 
         /// <summary>
         /// Should we ignore knockout comments?
         /// </summary>
-        public bool IgnoreKnockoutComments { get; set; }
+        public bool IgnoreKnockoutComments { get; set; } = false;
 
         /// <summary>
         /// Property for the max character count
         /// </summary>
-        public int MaxLength { get; private set; }
+        public int MaxLength { get; set; } = 0;
     }
 }

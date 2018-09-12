@@ -9,7 +9,7 @@ using System.Web.Razor.Text;
 using System.Web.WebPages.Razor;
 using RazorMinifier;
 
-namespace SampeWeb
+namespace SampleWeb
 {
     /**
      * Replace the default MVC factory with new host factory
