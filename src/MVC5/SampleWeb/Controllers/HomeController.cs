@@ -26,5 +26,10 @@ namespace SampleWeb.Controllers
 
             return View();
         }
+
+        public static string TestStaticCode(string value)
+        {
+            return $"Hello {value}";
+        }
     }
 }

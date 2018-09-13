@@ -34,12 +34,12 @@ More detailed explanation on how Razor work. You may refer to the open source of
 **For the host factory solution:**  
 - Under each Views folder, there is a web.config file
 - Replace the default `MvcWebRazorHostFactory` by the overrided `RazorMinificationHostFactory`, so the original line  
-~~~
-    `<host factoryType="System.Web.Mvc.MvcWebRazorHostFactory, System.Web.Mvc, Version=x.x.x.x, Culture=neutral, PublicKeyToken=XXXXX" />`  
+~~~XML
+<host factoryType="System.Web.Mvc.MvcWebRazorHostFactory, System.Web.Mvc, Version=x.x.x.x, Culture=neutral, PublicKeyToken=XXXXX" /> 
 ~~~
 is changed to  
-~~~
-`<host factoryType="SampleWeb.RazorMinificationHostFactory" />`
+~~~XML
+<host factoryType="SampleWeb.RazorMinificationHostFactory" />
 ~~~
 - Remember to replace in each Views folder, change the namespace and you are done
 - Run and try the output  
@@ -50,7 +50,7 @@ is changed to
 - Create a publish profile using FileSystem method
 - Open Properties\PublishProfiles\(Your Publish Profile Name).pubxml
 - Add following lines
-~~~
+~~~XML
   <!-- Minify the Razor -->
   <Target Name="CustomAction" AfterTargets="CopyAllFilesToSingleFolderForPackage">
     <Message Text="Minifying files....." />
@@ -71,7 +71,7 @@ Sample code is provided for your reference
 Enjoy your output.  
 As mentioned, the trick cannot cover all cases so if you found any issue, please report (and recommend solution if any).  
 I have faced cases where unminified Views work but minified don't, such as:  
-~~~
+~~~javascript
 <script>
     var option = { 
     }

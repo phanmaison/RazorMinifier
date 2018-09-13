@@ -1,4 +1,5 @@
-﻿@{
+﻿@using SampleWeb.Controllers
+@{
     // this is code
     ViewBag.SampleData = "Hello, this is sample data"; /* this is comment
 
@@ -9,7 +10,8 @@ in multiple line*/
 <hr />
 <h3>Partial Page Content</h3>
 <p>
-    Partial page content: @ViewBag.SampleData
+    Partial page content: @ViewBag.SampleData<br />
+    @HomeController.TestStaticCode("[Your name]")
 </p>
 <div id="partialContent"></div>
 <script>
