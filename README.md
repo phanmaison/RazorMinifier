@@ -1,6 +1,8 @@
 # Razor Minifier
 
-Thank you for getting here and show your interest in optimization.
+Thank you for getting here and show your interest in optimization.  
+This is a very simple lightweight solution to minify your Razor View in ASP.NET MVC5, just some tens line of code only.  
+There are existing solutions for [.NET Core](http://www.guardrex.com/post/razor-minification.html), however due to the simplicity, I plan to port this repo to .NET Core in the future.
 
 ### Why minifying the Razor View?
 
@@ -14,10 +16,10 @@ There are some good reasons to minify the Razor View output:
 There are arguments (e.g. [ASPNET Razor](https://github.com/aspnet/Razor/issues/423)) on Razor View optimization, and (in my opinion) Microsoft is the best one to provide the solution, but it seems that they won't.  
 So we must do some trick to make it work.  
   
-The first solution is provided by [Dean](https://github.com/deanhume/html-minifier/) where you can minify the view when you publish your website. Yes, thanks Dean for providing the solution. However, there is problem that you can only verify your work after you publish the website, means that your development environment and test environment may not be the same (I faced this).  
+A great solution is provided by [Dean](https://github.com/deanhume/html-minifier/) where you can minify the view when you publish your website. Yes, thanks Dean for providing the solution. However, there is problem that you can only verify your work after you publish the website, means that your development environment and test environment may not be the same (I faced this).  
 - Note that the minifying is just a trick so it is difficult to cover all cases, hence there can be potential issues and need your effort to re-test the whole application over and over.  
   
-That's why I would recommend you to try second approach: replace the MVC parser by your own so that you may have the same environment for development and testing, you can test both your work and minifying output right after you finish. Further explanation will be given in next section.
+That's why I would **recommend** you to try second approach: replace the MVC parser by your own so that you may have the same environment for development and testing, you can test both your work and minifying output right after you finish. Further explanation will be given in next section.
 
 ### How it work
 
@@ -31,18 +33,24 @@ More detailed explanation on how Razor work. You may refer to the open source of
 
 ### Usage
 
-**For the host factory solution:**  
-- Under each Views folder, there is a web.config file
-- Replace the default `MvcWebRazorHostFactory` by the overrided `RazorMinificationHostFactory`, so the original line  
+**For the host factory solution:** simply follow 2 steps  
+- Copy two files `RazorMinify.cs` and `RazorMinifyHostFactory.cs` (under SampleWeb\App_Code) to your web project
+- Under each Views folder, there is a web.config file, replace the default `MvcWebRazorHostFactory` by the overrided `RazorMinifyHostFactory`, so the original line  
 ~~~XML
 <host factoryType="System.Web.Mvc.MvcWebRazorHostFactory, System.Web.Mvc, Version=x.x.x.x, Culture=neutral, PublicKeyToken=XXXXX" /> 
 ~~~
 is changed to  
 ~~~XML
-<host factoryType="SampleWeb.RazorMinificationHostFactory" />
+<host factoryType="RazorMinifier.RazorMinifyHostFactory" />
 ~~~
-- Remember to replace in each Views folder, change the namespace and you are done
+- Remember to replace in each Views folder and you are done
 - Run and try the output  
+- **Note** you can enable/disable the RazorMinifier through root web.config, under appsetting:
+~~~XML
+<appSettings>
+    <add key="RazorMinifier:Disabled" value="false"/>
+</appSettings>
+~~~
 
 
 **For the publish solution:**
