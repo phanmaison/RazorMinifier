@@ -1,12 +1,17 @@
-﻿using System;
+﻿using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
 namespace RazorMinifier
 {
-    public static class RazorMinification
+    #region RazorMinification
+
+    /// <summary>
+    /// Utility to minify the content
+    /// </summary>
+    public static class RazorMinify
     {
-        #region MinifyHtml
+        #region Minify
 
         /// <summary>
         /// Minifies the given HTML string.
@@ -16,7 +21,7 @@ namespace RazorMinifier
         /// <returns>
         /// The <see cref="string"/>.
         /// </returns>
-        public static string MinifyHtml(string htmlContents, MinifyOptions option)
+        public static string Minify(string htmlContents, MinifyOptions option)
         {
             // to be removed later
             //// First, remove all JavaScript comments
@@ -81,7 +86,7 @@ namespace RazorMinifier
             return htmlContents.Trim();
         }
 
-        #endregion MinifyHtml
+        #endregion Minify
 
         #region ReplaceTextLine
 
@@ -105,4 +110,82 @@ namespace RazorMinifier
 
         #endregion ReplaceTextLine
     }
+
+    #endregion RazorMinification
+
+    #region MinifyOptions
+
+    /// <summary>
+    /// Option for minifying
+    /// </summary>
+    public class MinifyOptions
+    {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MinifyOptions"/> class
+        /// </summary>
+        public MinifyOptions() { }
+
+        /// <summary>
+        /// Check the arguments passed in to determine if we should enable or disable any features.
+        /// </summary>
+        /// <param name="args">The arguments passed in.</param>
+        public MinifyOptions(string[] args)
+        {
+            if (args.Contains("ignorehtmlcomments"))
+                IgnoreHtmlComments = true;
+
+            if (args.Contains("ignorejscomments"))
+                IgnoreJsComments = true;
+
+            if (args.Contains("ignoreregion"))
+                this.IgnoreRegion = true;
+
+            if (args.Contains("ignoreknockoutcomments"))
+                IgnoreKnockoutComments = true;
+
+
+            // maxlength=XXXXX
+            int maxLength = 0;
+
+            foreach (string arg in args)
+            {
+                if (arg.Contains("maxlength="))
+                {
+                    int.TryParse(arg.Split("=".ToCharArray())[1], out maxLength);
+                }
+            }
+
+            MaxLength = maxLength;
+        }
+
+        /// <summary>
+        /// Should we ignore the JavaScript comments and not minify?
+        /// </summary>
+        public bool IgnoreJsComments { get; set; }
+
+        /// <summary>
+        /// Should we ignore the html comments and not minify?
+        /// </summary>
+        public bool IgnoreHtmlComments { get; set; }
+
+        /// <summary>
+        /// If the #region should be ignored
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [ignore region]; otherwise, <c>false</c>
+        /// </value>
+        public bool IgnoreRegion { get; set; }
+
+        /// <summary>
+        /// Should we ignore knockout comments?
+        /// </summary>
+        public bool IgnoreKnockoutComments { get; set; }
+
+        /// <summary>
+        /// Property for the max character count
+        /// </summary>
+        public int MaxLength { get; set; } = 0;
+    }
+
+    #endregion MinifyOptions
 }

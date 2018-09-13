@@ -98,13 +98,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\RazorMinifier.Core\MinifyOptions.cs">
-      <Link>App_Code\MinifyOptions.cs</Link>
-    </Compile>
-    <Compile Include="..\RazorMinifier.Core\RazorMinification.cs">
-      <Link>App_Code\RazorMinification.cs</Link>
-    </Compile>
-    <Content Include="App_Code\RazorMinificationHostFactory.cs" />
+    <Content Include="App_Code\RazorMinifyHostFactory.cs" />
+    <Content Include="App_Code\RazorMinify.cs" />
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
@@ -135,7 +130,9 @@
     <Content Include="Scripts\popper-utils.js" />
     <Content Include="Scripts\popper.js" />
     <Content Include="Scripts\respond.js" />
-    <Content Include="Web.config" />
+    <Content Include="Web.config">
+      <SubType>Designer</SubType>
+    </Content>
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </Content>

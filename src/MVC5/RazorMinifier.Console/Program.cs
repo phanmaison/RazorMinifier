@@ -38,7 +38,7 @@ namespace RazorMinifierConsole
                         ProcessFile(features, arg);
                     }
                 }
-                Console.WriteLine("Razor Minification Complete");
+                Console.WriteLine("Razor Minifying Complete");
             }
 
             //Console.ReadLine();
@@ -118,20 +118,21 @@ namespace RazorMinifierConsole
         /// Minifies the contents of the given view.
         /// </summary>
         /// <param name="filePath">The file path.</param>
-        /// <param name="features">The features</param>
+        /// <param name="option">The features</param>
         /// <returns>
         /// The <see cref="string" />.
         /// </returns>
-        public static string MinifyHtml(string filePath, MinifyOptions features)
+        public static string MinifyHtml(string filePath, MinifyOptions option)
         {
             using (StreamReader reader = new StreamReader(filePath))
             {
-                return RazorMinification.MinifyHtml(reader.ReadToEnd(), features);
+                return RazorMinify.Minify(reader.ReadToEnd(), option);
             }
         }
 
         #endregion MinifyHtml
 
+        #region IsHtmlFile
 
         /// <summary>
         /// Checks if a file extension matches 
@@ -152,5 +153,7 @@ namespace RazorMinifierConsole
                     filePath.EndsWith(".master") ||
                     filePath.EndsWith(".inc");
         }
+
+        #endregion IsHtmlFile
     }
 }

@@ -1,15 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
+using System.Configuration;
 using System.Web.Mvc;
 using System.Web.Mvc.Razor;
 using System.Web.Razor.Parser;
 using System.Web.Razor.Text;
 using System.Web.WebPages.Razor;
-using RazorMinifier;
 
-namespace SampleWeb
+namespace RazorMinifier
 {
     /**
      * Replace the default MVC factory with new host factory
@@ -17,11 +14,18 @@ namespace SampleWeb
      * 
      * */
 
-
-    public class RazorMinificationHostFactory : MvcWebRazorHostFactory
+    public class RazorMinifyHostFactory : MvcWebRazorHostFactory
     {
-        private static MinifyOptions _option = null;
+        #region Option
 
+        private static MinifyOptions _option;
+
+        /// <summary>
+        /// Gets the option
+        /// </summary>
+        /// <value>
+        /// The option
+        /// </value>
         private static MinifyOptions Option
         {
             get
@@ -29,12 +33,30 @@ namespace SampleWeb
                 if (_option == null)
                 {
                     _option = new MinifyOptions();
+                    // customize the default option
                 }
 
                 return _option;
             }
         }
+        #endregion Option
 
+        #region DisableMinify
+
+        /// <summary>
+        /// If the minifying is disabled
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [disable minify]; otherwise, <c>false</c>
+        /// </value>
+        private static bool DisableMinify
+        {
+            get { return ConfigurationManager.AppSettings["RazorMinifier:Disabled"] == "true"; }
+        }
+
+        #endregion DisableMinify
+
+        #region CreateHost
 
         /// <summary>
         /// Creates the host.
@@ -44,10 +66,16 @@ namespace SampleWeb
         /// <returns></returns>
         public override WebPageRazorHost CreateHost(string virtualPath, string physicalPath)
         {
+            if (DisableMinify) return base.CreateHost(virtualPath, physicalPath);
+
             WebPageRazorHost host = base.CreateHost(virtualPath, physicalPath);
 
             return !host.IsSpecialPage ? new RazorMinificationHost(virtualPath, physicalPath) : host;
         }
+
+        #endregion CreateHost
+
+        #region RazorMinificationHost
 
         /// <summary>
         /// Container for razor parser
@@ -71,30 +99,38 @@ namespace SampleWeb
             }
         }
 
+        #endregion RazorMinificationHost
+
+        #region MinifyHtmlMarkupParser
+
+        /// <summary>
+        /// Overrided html markup parser
+        /// </summary>
+        /// <seealso cref="System.Web.Razor.Parser.HtmlMarkupParser" />
         private class MinifyHtmlMarkupParser : HtmlMarkupParser
         {
             public override void ParseDocument()
             {
                 if (Context == null)
-                {
                     throw new NullReferenceException("Context");
+
+                if (!DisableMinify)
+                {
+                    // read the current source
+                    // minify it and return back to the context
+                    string content = this.Context.Source.ReadToEnd();
+
+                    content = RazorMinify.Minify(content, RazorMinifyHostFactory.Option);
+
+                    this.Context.Source = new TextDocumentReader(new SeekableTextReader(content));
                 }
 
-                // read the current source
-                // optimize it and return back to the context
-                string content = this.Context.Source.ReadToEnd();
-
-                content = RazorMinification.MinifyHtml(content, new MinifyOptions());
-
-                //content = content.Replace("abc", "<b>Hahaha</b>");
-
-                this.Context.Source = new TextDocumentReader(new SeekableTextReader(content));
-
+                // continue the normal flow
                 base.ParseDocument();
             }
         }
 
-
+        #endregion MinifyHtmlMarkupParser
 
     }
 
