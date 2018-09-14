@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -23,16 +25,6 @@ namespace RazorMinifier
         /// </returns>
         public static string Minify(string htmlContents, MinifyOptions option)
         {
-            // to be removed later
-            //// First, remove all JavaScript comments
-            //if (!features.IgnoreJsComments)
-            //{
-            //    htmlContents = RemoveJavaScriptComments(htmlContents);
-            //}
-
-            // remove block comment /* */
-            htmlContents = Regex.Replace(htmlContents, @"/\*(.|\n)*?\*/", "", RegexOptions.Multiline);
-
             // remove block comment @* *@ to save some more space
             htmlContents = Regex.Replace(htmlContents, @"@\*(.|\n)*?\*@", "", RegexOptions.Multiline);
 
@@ -40,8 +32,13 @@ namespace RazorMinifier
             htmlContents = ReplaceTextLine(htmlContents);
 
             if (!option.IgnoreJsComments)
+            {
+                // remove block comment /* */
+                htmlContents = Regex.Replace(htmlContents, @"/\*(.|\n)*?\*/", "", RegexOptions.Multiline);
+
                 // double slash (//) not start with semi colon (:)
                 htmlContents = Regex.Replace(htmlContents, @"[^:]//(.*?)\r?\n", "", RegexOptions.Singleline);
+            }
 
             // Replace #region and #endregion
             if (!option.IgnoreRegion)
@@ -83,10 +80,140 @@ namespace RazorMinifier
             // Put back special keys
             //htmlContents = htmlContents.Replace("{{{SLASH_STAR}}}", "/*");
 
+            // Ensure that the max length is less than 65K characters
+            htmlContents = EnsureMaxLength(htmlContents, option.MaxLength);
+
+            // Re-add the @model declaration
+            htmlContents = RearrangeDeclarations(htmlContents);
+
+
             return htmlContents.Trim();
         }
 
         #endregion Minify
+
+        #region RearrangeDeclarations
+
+        /// <summary>
+        /// Find any occurences of the particular Razor keywords
+        /// and add a new line or move to the top of the view.
+        /// </summary>
+        /// <param name="fileContents">The contents of the file</param>
+        /// <returns>
+        /// The <see cref="string"/>.
+        /// </returns>
+        public static string RearrangeDeclarations(string fileContents)
+        {
+            // A list of all the declarations
+            Dictionary<string, bool> declarations = new Dictionary<string, bool>
+            {
+                {"@model ", true},
+                {"@using ", false},
+                {"@inherits ", false},
+                {"@helper ", false} // robin: add helper block code
+            };
+
+            // Loop through the declarations
+            foreach (var declaration in declarations)
+            {
+                fileContents = RearrangeDeclarations(fileContents, declaration.Key, declaration.Value);
+            }
+
+            return fileContents;
+        }
+
+        /// <summary>
+        /// Re-arranges the razor syntax on its own line.
+        /// It seems to break the razor engine if this isnt on
+        /// it's own line in certain cases.
+        /// </summary>
+        /// <param name="fileContents">The file contents.</param>
+        /// <param name="declaration">The declaration keywords that will cause a new line split.</param>
+        /// <param name="bringToTop">if set to <c>true</c> [bring to top]</param>
+        /// <returns>
+        /// The <see cref="string" />.
+        /// </returns>
+        private static string RearrangeDeclarations(string fileContents, string declaration, bool bringToTop)
+        {
+            // Find possible multiple occurences in the file contents
+            MatchCollection matches = Regex.Matches(fileContents, declaration);
+
+            // Loop through the matches
+            int alreadyMatched = 0;
+            foreach (Match match in matches)
+            {
+                int position = declaration.Length;
+                int declarationPosition = match.Index;
+
+                // If we have more than one match, we need to keep the counter moving everytime we add a new line
+                if (matches.Count > 1 && alreadyMatched > 0)
+                {
+                    // Cos we added one or more new line break \n\r
+                    declarationPosition += (2 * alreadyMatched);
+                }
+
+                while (true)
+                {
+                    // Move one forward
+                    position += 1;
+                    if (position > fileContents.Length) break;
+                    string substring = fileContents.Substring(declarationPosition, position);
+
+                    // Check if it contains a whitespace at the end
+                    if (!substring.EndsWith(", ") && (substring.EndsWith(" ")
+                        || substring.EndsWith(">") && fileContents.Substring(declarationPosition + position - 1, 2) != ">>"))
+                    {
+                        if (bringToTop)
+                        {
+                            // First replace the occurence
+                            fileContents = fileContents.Replace(substring, "");
+
+                            // Next move it to the top on its own line
+                            fileContents = substring + Environment.NewLine + fileContents;
+                            break;
+                        }
+                        else
+                        {
+                            // Add a line break afterwards
+                            fileContents = fileContents.Replace(substring, substring + Environment.NewLine);
+                            alreadyMatched++;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            return fileContents;
+        }
+
+        #endregion RearrangeDeclarations
+
+        #region EnsureMaxLength
+
+        /// <summary>
+        /// Ensure that the max character count is less than 65K.
+        /// If so, break onto the next line.
+        /// </summary>
+        /// <param name="htmlContents">The minified HTML</param>
+        /// <param name="maxLength">The maximum length</param>
+        public static string EnsureMaxLength(string htmlContents, int maxLength)
+        {
+            if (maxLength > 0)
+            {
+                int htmlLength = htmlContents.Length;
+                int currentMaxLength = maxLength;
+
+                while (htmlLength > currentMaxLength)
+                {
+                    var position = htmlContents.LastIndexOf("><", currentMaxLength, StringComparison.Ordinal);
+                    htmlContents = htmlContents.Substring(0, position + 1) + "\r\n" + htmlContents.Substring(position + 1);
+                    currentMaxLength += maxLength;
+                }
+            }
+            return htmlContents;
+        }
+
+        #endregion EnsureMaxLength
 
         #region ReplaceTextLine
 
@@ -123,7 +250,9 @@ namespace RazorMinifier
         /// <summary>
         /// Initializes a new instance of the <see cref="MinifyOptions"/> class
         /// </summary>
-        public MinifyOptions() { }
+        public MinifyOptions()
+        {
+        }
 
         /// <summary>
         /// Check the arguments passed in to determine if we should enable or disable any features.
@@ -131,8 +260,9 @@ namespace RazorMinifier
         /// <param name="args">The arguments passed in.</param>
         public MinifyOptions(string[] args)
         {
-            if (args.Contains("ignorehtmlcomments"))
-                IgnoreHtmlComments = true;
+            // should always ignore html comments
+            //if (args.Contains("ignorehtmlcomments"))
+            IgnoreHtmlComments = true;
 
             if (args.Contains("ignorejscomments"))
                 IgnoreJsComments = true;
@@ -142,7 +272,6 @@ namespace RazorMinifier
 
             if (args.Contains("ignoreknockoutcomments"))
                 IgnoreKnockoutComments = true;
-
 
             // maxlength=XXXXX
             int maxLength = 0;

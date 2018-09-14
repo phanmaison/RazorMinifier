@@ -30,6 +30,7 @@ namespace RazorMinifier
         {
             get
             {
+                // ReSharper disable once ConvertIfStatementToNullCoalescingExpression
                 if (_option == null)
                 {
                     _option = new MinifyOptions();
@@ -51,7 +52,10 @@ namespace RazorMinifier
         /// </value>
         private static bool DisableMinify
         {
-            get { return ConfigurationManager.AppSettings["RazorMinifier:Disabled"] == "true"; }
+            get
+            {
+                return ConfigurationManager.AppSettings["RazorMinifier:Disabled"] == "true";
+            }
         }
 
         #endregion DisableMinify
@@ -134,6 +138,12 @@ namespace RazorMinifier
 
     }
 
+    // Note: other way to inject
+    // - System.Web.WebPages.Razor.RazorBuildProvider.CodeGenerationStarted event
+    // - create custom RazorBuildProvider and register on application_start (using BuildProvider)
 
+    // more complicated one: create custom RazorViewEngine
+    //      ViewEngines.Engines.Clear();
+    //      ViewEngines.Engines.Add(new CustomRazorViewEngine());
 
 }

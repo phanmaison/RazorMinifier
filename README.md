@@ -89,5 +89,6 @@ I have faced cases where unminified Views work but minified don't, such as:
 </script>
 ~~~
 
- 
+---
 
+Moreover, it's worth to mention that this solution cannot minify the function's output (which can be done at run-time only). So if you observe the output, sometime you may see line-breaks (due to the bundles, editor template, etc ..)
